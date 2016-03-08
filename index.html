@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="Autocomplete using Elasticsearch ">
+		<title>Elasticsearch Autocomplete</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+	</head>
+	<style type="text/css">
+	.container{
+		width:90%;
+		margin:5em auto;
+	}
+	</style>
+	<body>
+		<div class="container">
+			<div class="input-group">
+  				<span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+  				<input type="text" class="form-control" placeholder="Search" aria-describedby="basic-addon1" id="search" onfocus="setFocus(1)" onblur="setFocus(0)">
+			</div>
+            <ul id="results" style="border: 1px solid #e6e6e6;list-style-type: none;"></ul>
+		</div>
+	</body>
+	<script type="text/javascript">
+    var focus=0;
+    var results='';
+    function setFocus(n){
+        focus=n;
+        getSuggest();
+    }
+	function getSuggest(){
+		var search=$('#search');
+        var text=search.val().toLowerCase();
+
+				var feed ='{"query": {"term": {"firstname.autocomplete": "'+text+'"}},"aggs":{"autoResults":{"terms":{"field":"firstname.autocomplete"}}}}'
+
+        $.post( "http://localhost:9200/bank/account/_search?pretty", feed, function( data ) {
+
+            $.each(data.aggregations.autoResults.buckets,
+                function(index,values){
+                    results+='<li>'+values.key;
+                    results+='</li>';
+                }
+                );
+            $('#results').html(results);
+            results='';
+            if (focus==1) setTimeout(function(){getSuggest()}, 300);
+        });
+	}
+	</script>
+</html>

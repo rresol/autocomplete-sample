@@ -20,16 +20,21 @@
 	</style>
 	<body>
 		<div class="container">
+			<label>Search By First Name ::</label>
 			<div class="input-group">
   				<span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
   				<input type="text" class="form-control" placeholder="Search" aria-describedby="basic-addon1" id="search" onfocus="setFocus(1)" onblur="setFocus(0)">
 			</div>
-            <ul id="results" style="border: 1px solid #e6e6e6;list-style-type: none;"></ul>
+      <ul id="results" style="border: 1px solid #e6e6e6;list-style-type: none;"></ul>
+			<br>
+
+			<ul id="hits"></ul>
 		</div>
 	</body>
 	<script type="text/javascript">
     var focus=0;
     var results='';
+		var hits ='';
     function setFocus(n){
         focus=n;
         getSuggest();
@@ -40,7 +45,7 @@
 
 				var feed ='{"query": {"term": {"firstname.autocomplete": "'+text+'"}},"aggs":{"autoResults":{"terms":{"field":"firstname.autocomplete"}}}}'
 
-        $.post( "http://localhost:9200/bank/account/_search?pretty", feed, function( data ) {
+        $.post( "http://192.168.0.151:9200/bank/account/_search?pretty", feed, function( data ) {
 
             $.each(data.aggregations.autoResults.buckets,
                 function(index,values){
@@ -48,8 +53,14 @@
                     results+='</li>';
                 }
                 );
+						$.each(data.hits.hits,function(i,source){
+								hits+= '<li>'+source._source.firstname;
+								hits+='</li>';
+						});
             $('#results').html(results);
             results='';
+						$('#hits').html(hits);
+						hits='';
             if (focus==1) setTimeout(function(){getSuggest()}, 300);
         });
 	}
